@@ -1,0 +1,12 @@
+{
+  "email": "info@ramblingware.com",
+  "staging": false,
+  "domains": [
+    {
+      "domain": "ramblingware.com",
+      "hosts": [
+        "www"
+      ]
+    }
+  ]
+}

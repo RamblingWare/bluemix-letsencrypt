@@ -1,43 +1,34 @@
 # bluemix-letsencrypt
 A script for configuring [Let's Encrypt](https://letsencrypt.org) SSL certificates for CloudFoundry apps on IBM Bluemix
 
-Using the `--path` argument of the `cf map-route` command, you can configure a specific path to be directed to a separate app.  The benefit, in this situation, is that you can automate the configuration of SSL certificates for your custom domain applications by running the [letsencrypt certbot](https://github.com/certbot/certbot) code in a separate instance without disrupting your application.
+## Prerequisites
 
-```
-NAME:
-   map-route - Add a url route to an app
+Firstly you must have the custom domains created, DNS configured, and set your target of choice.
 
-USAGE:
-   cf map-route APP_NAME DOMAIN [--hostname HOSTNAME] [--path PATH]
+ * [cf CLI](https://github.com/cloudfoundry/cli/releases)
+ * [bx CLI](https://clis.ng.bluemix.net/ui/home.html)
+ * [Python 2.7](https://www.python.org/downloads/)
 
-EXAMPLES:
-   cf map-route my-app example.com                              # example.com
-   cf map-route my-app example.com --hostname myhost            # myhost.example.com
-   cf map-route my-app example.com --hostname myhost --path foo # myhost.example.com/foo
+## Usage
 
-OPTIONS:
-   --hostname, -n   Hostname for the route (required for shared domains)
-   --path           Path for the route
-```
+ 1. Clone: `git clone https://github.com/RamblingWare/bluemix-letsencrypt`
+ 1. `cd bluemix-letsencrypt`
+ 1. Install dependencies
+    * `pip install requests`
+    * `pip install pyyaml`
+ 1. Edit domain.yml with your email and custom domain names
+ 1. Start: `python setup-app.py`
+    1. Map route needed for Let's Encrypt to verify you own the domain
+       `bx cf map-route letsencrypt www.ramblingware.com --path .well-known/*`
+    1. Let the app finish verification. Check logs with `bx cf logs letsencrypt --recent`
+ 1. Download the resulting certificate files
+    * `cf ssh letsencrypt -c 'cat ~/app/conf/live/www.ramblingware.com/cert.pem' > cert.pem`
+    * `cf ssh letsencrypt -c 'cat ~/app/conf/live/www.ramblingware.com/chain.pem' > chain.pem`
+    * `cf ssh letsencrypt -c 'cat ~/app/conf/live/www.ramblingware.com/fullchain.pem' > fullchain.pem`
+    * `cf ssh letsencrypt -c 'cat ~/app/conf/live/www.ramblingware.com/privkey.pem' > privkey.pem`
+ 1. Upload certificate files to Bluemix for your custom domain
+    1. `bx app domain-cert-remove www.ramblingware.com`
+    1. `bx app domain-cert-add www.ramblingware.com -c cert.pem -k privkey.pem -i chain.pem`
+    1. `bx app domain-cert www.ramblingware.com`
 
-Firstly you must have the Bluemix CLI installed, custom domains created, DNS configured, and set your target of choice.
-
-Once ready:
-
-1. download/clone this repo
-2. install the requests package (e.g. pip install requests)
-3. rename domains.yml.example to domains.yml
-4. enter your email address (e.g. for certificate renewal reminders)
-5. enter your custom domain name and its corresponding hostnames
-
-Each [host].[domain] combination will become a separate DNS name in the SAN field of the requested certificate. Set the first host value to '.' to set the Subject Common Name to the name of the domain.
-
-Note: During testing, please set `staging` to `true` in order to keep load off the production Let's Encrypt environment and reduce the chance of hitting their rate limits (https://letsencrypt.org/docs/staging-environment/).
-
-Finally, run `python setup-app.py` to
-
-1. push the cf-letsencrypt application
-2. map the routes needed for Let's Encrypt to verify that you own the domain
-3. initiate and complete the Let's Encrypt ACME protocol for obtaining a certificate
-4. download the resulting certificate files, and
-5. upload it into Bluemix for your custom domain
+> Note: During testing, please set `staging` to `true` in order to keep load off the production Let's Encrypt environment and reduce the chance of hitting their rate limits (https://letsencrypt.org/docs/staging-environment/).

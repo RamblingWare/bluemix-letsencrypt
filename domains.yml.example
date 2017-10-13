@@ -1,12 +1,12 @@
 {
-  "email": "ben@example.com",
+  "email": "info@example.com",
   "staging": false,
   "domains": [
     {
       "domain": "example.com",
       "hosts": [
         ".",
-        "auth",
+        "api",
         "test",
         "www"
       ]
@@ -14,8 +14,8 @@
     {
       "domain": "example2.com",
       "hosts": [
-        "abc",
-        "test"
+        ".",
+        "www"
       ]
     }
   ]
