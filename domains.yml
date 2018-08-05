@@ -5,6 +5,7 @@
     {
       "domain": "ramblingware.com",
       "hosts": [
+        ".",
         "www"
       ]
     }
